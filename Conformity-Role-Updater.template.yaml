@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: > 
+  This template deploys a lambda function which checks once a day for any updates to the cloudconformity role template to the currently deployed version within cloudformation, if a new version is available this function will automatically update the stack to the latest version.
+
+Resources:
+  CCAutoUpdaterEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: "Scheduled Event rule"
+      ScheduleExpression: "rate(1 day)"
+      State: ENABLED
+      Targets: 
+        -
+          Arn:
+            Fn::GetAtt: 
+              - CCAutoUpdaterFunction
+              - Arn
+          Id: CCAutoUpdaterEventTarget
+
+  CCAutoUpdaterEventPermissions:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref CCAutoUpdaterFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt  CCAutoUpdaterEventRule.Arn
+
+  CCAutoUpdaterFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.main
+      Timeout: 60
+      Role: !GetAtt 'CCAutoUpdaterFunctionRole.Arn'
+      Runtime: python3.7
+      Code:
+        ZipFile: |
+          import boto3
+          import json
+          import urllib3
+
+          templateurl='https://s3-us-west-2.amazonaws.com/cloudconformity/CloudConformity.template'
+          cfresource=boto3.resource('cloudformation')
+          stack=cfresource.Stack('CloudConformity')
+          stackparams=[
+              {
+                  'ParameterKey': 'AccountId',
+                  'UsePreviousValue': True
+              },
+              {
+                  'ParameterKey': 'ExternalId',
+                  'UsePreviousValue': True
+              }
+          ]
+
+          def get_conformity_template_verion():
+              http=urllib3.PoolManager()
+              template=http.request('GET', templateurl)
+              templatejson=json.loads(template.data.decode('utf-8'))['Outputs']['Version']
+              for key, value in templatejson.items():
+                  print('The latest CloudConformity template version is: {}'.format(value))
+                  return(value)
+
+          def get_conformity_stack_version():
+              stackoutputs=stack.outputs
+              for o in stackoutputs:
+                  if o['OutputKey'] == 'Version':
+                      print('The CloudConformity stack version is: {}'.format(o['OutputValue']))
+                      return(o['OutputValue'])
+
+          def main(event, context):
+              templateversion=get_conformity_template_verion()
+              stackversion=get_conformity_stack_version()
+              if templateversion > stackversion:
+                  stack.update(TemplateURL=templateurl,UsePreviousTemplate=False,Parameters=stackparams,Capabilities=['CAPABILITY_NAMED_IAM'])
+                  print('The CloudConformity stack is out of date, updating the stack to: {}'.format(templateversion))
+                  return('The CloudConformity stack is out of date, updating the stack to: {}'.format(templateversion))
+              else:
+                  print('The CloudConformity stack is already up to date, version: {}'.format(stackversion))
+                  return('The CloudConformity stack is already up to date, version: {}'.format(stackversion))
+
+          if __name__ == "__main__":
+              main(event=None, context=None)
+
+  CCAutoUpdaterFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+          Condition: {}
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  CCAutoUpdaterFunctionPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Sid: CloudFormationAccess
+          Effect: Allow
+          Action:
+            - 'cloudformation:UpdateStack'
+            - 'cloudformation:DescribeStacks'
+          Resource: 'arn:aws:cloudformation:*:*:stack/CloudConformity/*'
+        - Sid: IAMGetRoleAccess
+          Effect: Allow
+          Action:
+            - 'iam:GetRole'
+          Resource: '*'
+      Roles:
+        - !Ref CCAutoUpdaterFunctionRole
