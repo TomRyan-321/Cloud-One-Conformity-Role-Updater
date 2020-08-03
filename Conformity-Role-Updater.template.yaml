@@ -117,7 +117,7 @@ Resources:
           Action:
             - 'cloudformation:UpdateStack'
             - 'cloudformation:DescribeStacks'
-          Resource: 'arn:aws:cloudformation:*:*:stack/CloudConformity/*'
+          Resource: !Sub 'arn:aws:cloudformation:*:*:stack/${ConformityStackName}/*'
         - Sid: IAMGetRoleAccess
           Effect: Allow
           Action:
