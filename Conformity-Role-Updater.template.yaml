@@ -16,11 +16,7 @@ Resources:
       ScheduleExpression: "rate(1 day)"
       State: ENABLED
       Targets: 
-        -
-          Arn:
-            Fn::GetAtt: 
-              - CCAutoUpdaterFunction
-              - Arn
+        - Arn: !GetAtt CCAutoUpdaterFunction.Arn
           Id: CCAutoUpdaterEventTarget
 
   CCAutoUpdaterEventPermissions:
