@@ -1,5 +1,6 @@
 import boto3
 import json
+import os
 import urllib3
 
 templateurl='https://s3-us-west-2.amazonaws.com/cloudconformity/CloudConformity.template'
