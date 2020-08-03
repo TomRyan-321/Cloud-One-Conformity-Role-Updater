@@ -2,6 +2,12 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: > 
   This template deploys a lambda function which checks once a day for any updates to the cloudconformity role template to the currently deployed version within cloudformation, if a new version is available this function will automatically update the stack to the latest version.
 
+Parameters:
+  ConformityStackName:
+    Type: String
+    Default: CloudConformity
+    Description: Input the Stack Name used to create the Conformity role eg CloudConformity
+
 Resources:
   CCAutoUpdaterEventRule:
     Type: AWS::Events::Rule
@@ -32,15 +38,20 @@ Resources:
       Timeout: 60
       Role: !GetAtt 'CCAutoUpdaterFunctionRole.Arn'
       Runtime: python3.7
+      Environment:
+        Variables:
+          ccstackname: !Ref ConformityStackName
       Code:
         ZipFile: |
           import boto3
           import json
           import urllib3
+          import os
 
           templateurl='https://s3-us-west-2.amazonaws.com/cloudconformity/CloudConformity.template'
           cfresource=boto3.resource('cloudformation')
-          stack=cfresource.Stack('CloudConformity')
+          stackname=os.environ.get('ccstackname')
+          stack=cfresource.Stack(stackname)
           stackparams=[
               {
                   'ParameterKey': 'AccountId',

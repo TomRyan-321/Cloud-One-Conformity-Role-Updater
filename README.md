@@ -8,4 +8,4 @@ The template deploys a lambda function running on the Python 3.7 runtime with a 
 
 ## Installation
 
-Deploy the cloudformation template in the same region you have deployed the CloudConformtiy role template (default and recommended region: us-east-1). Assumes default Cloud Conformity stack name of 'CloudConformity'
+Deploy the cloudformation template in the same region you have deployed the CloudConformtiy role template (default and recommended region: us-east-1). Only parameter required is the stackname used to deploy the original cloudconformity role.

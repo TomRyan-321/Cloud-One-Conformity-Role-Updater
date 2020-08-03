@@ -4,7 +4,8 @@ import urllib3
 
 templateurl='https://s3-us-west-2.amazonaws.com/cloudconformity/CloudConformity.template'
 cfresource=boto3.resource('cloudformation')
-stack=cfresource.Stack('CloudConformity')
+stackname=os.environ.get('ccstackname')
+stack=cfresource.Stack(stackname)
 stackparams=[
     {
         'ParameterKey': 'AccountId',
