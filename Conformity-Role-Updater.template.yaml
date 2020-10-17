@@ -135,6 +135,7 @@ Resources:
           Action:
             - 'iam:UpdateRole'
             - 'iam:AttachRolePolicy'
+            - 'iam:DetachRolePolicy'
           Resource: 
             - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CloudConformity*'
             - !Sub 'arn:aws:iam::${AWS::AccountId}:role/CloudConformity'
