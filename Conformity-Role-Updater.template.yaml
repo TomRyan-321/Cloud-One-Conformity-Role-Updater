@@ -109,16 +109,33 @@ Resources:
       PolicyDocument:
         Version: 2012-10-17
         Statement:
-        - Sid: CloudFormationAccess
+        - Sid: CloudFormationPermissions
           Effect: Allow
           Action:
             - 'cloudformation:UpdateStack'
             - 'cloudformation:DescribeStacks'
           Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${ConformityStackName}/*'
-        - Sid: IAMGetRoleAccess
+        - Sid: CloudformationIAMGetRoleAccess
           Effect: Allow
           Action:
             - 'iam:GetRole'
           Resource: '*'
+        - Sid: IAMPolicyPermissions
+          Effect: Allow
+          Action:
+            - 'iam:CreatePolicy'
+            - 'iam:DeletePolicy'
+            - 'iam:ListPolicyVersions'
+            - 'iam:CreatePolicyVersion'
+            - 'iam:DeletePolicyVersion'
+          Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CloudConformity*'
+        - Sid: IAMRolePermissions
+          Effect: Allow
+          Action:
+            - 'iam:UpdateRole'
+            - 'iam:AttachRolePolicy'
+          Resource: 
+            - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CloudConformity*'
+            - !Sub 'arn:aws:iam::${AWS::AccountId}:role/CloudConformity'
       Roles:
         - !Ref CCAutoUpdaterFunctionRole
