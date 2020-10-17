@@ -128,6 +128,7 @@ Resources:
             - 'iam:ListPolicyVersions'
             - 'iam:CreatePolicyVersion'
             - 'iam:DeletePolicyVersion'
+            - 'iam:SetDefaultPolicyVersion'
           Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:policy/CloudConformity*'
         - Sid: IAMRolePermissions
           Effect: Allow
