@@ -2,6 +2,7 @@ import boto3
 import json
 import os
 import urllib3
+from distutils.version import StrictVersion
 
 templateurl='https://s3-us-west-2.amazonaws.com/cloudconformity/CloudConformity.template'
 cfresource=boto3.resource('cloudformation')
@@ -36,7 +37,7 @@ def get_conformity_stack_version():
 def main(event, context):
     templateversion=get_conformity_template_verion()
     stackversion=get_conformity_stack_version()
-    if templateversion > stackversion:
+    if StrictVersion(templateversion) > StrictVersion(stackversion):
         stack.update(TemplateURL=templateurl,UsePreviousTemplate=False,Parameters=stackparams,Capabilities=['CAPABILITY_NAMED_IAM'])
         print('The CloudConformity stack is out of date, updating the stack to: {}'.format(templateversion))
         return('The CloudConformity stack is out of date, updating the stack to: {}'.format(templateversion))
