@@ -7,6 +7,10 @@ Parameters:
     Type: String
     Default: CloudConformity
     Description: Input the Stack Name used to create the Conformity role eg CloudConformity
+  TemplateURL:
+    Type: String
+    Default: https://s3-us-west-2.amazonaws.com/cloudconformity/CloudConformity.template
+    Description: URL hosting the Cloud Conformity Role template
 
 Resources:
   CCAutoUpdaterEventRule:
@@ -33,10 +37,11 @@ Resources:
       Handler: index.main
       Timeout: 60
       Role: !GetAtt 'CCAutoUpdaterFunctionRole.Arn'
-      Runtime: python3.7
+      Runtime: python3.8
       Environment:
         Variables:
           ccstackname: !Ref ConformityStackName
+          templateurl: !Ref TemplateURL
       Code:
         ZipFile: |
           import boto3
@@ -45,7 +50,7 @@ Resources:
           import urllib3
           from distutils.version import StrictVersion
 
-          templateurl='https://s3-us-west-2.amazonaws.com/cloudconformity/CloudConformity.template'
+          templateurl=os.environ.get('templateurl')
           cfresource=boto3.resource('cloudformation')
           stackname=os.environ.get('ccstackname')
           stack=cfresource.Stack(stackname)

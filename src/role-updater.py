@@ -4,7 +4,7 @@ import os
 import urllib3
 from distutils.version import StrictVersion
 
-templateurl='https://s3-us-west-2.amazonaws.com/cloudconformity/CloudConformity.template'
+templateurl=os.environ.get('templateurl')
 cfresource=boto3.resource('cloudformation')
 stackname=os.environ.get('ccstackname')
 stack=cfresource.Stack(stackname)
